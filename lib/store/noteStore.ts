@@ -22,8 +22,8 @@ export const useNoteDraft = create<NoteDraft>()(persist(
     }),
     {
         name: 'note-draft',
-        partialize: (stat) => ({ draft: state.draft }),
+        partialize: (state) => ({ draft: state.draft }),
     }
-))
+));
  
  
