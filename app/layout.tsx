@@ -42,15 +42,16 @@ export default function RootLayout({
   modal: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={roboto.variable}>
-       <TanStackProvider>
-          <Header />
-          {children}
-          {modal}
-          <Footer />
-        </TanStackProvider>
-      </body>
-    </html>
-  );
+ <html lang="en">
+ <body className={roboto.variable} suppressHydrationWarning>
+ <TanStackProvider>
+ <Header />
+ {children}
+ {modal}
+ <Footer />
+ </TanStackProvider>
+ </body>
+ </html>
+)
+
 }
