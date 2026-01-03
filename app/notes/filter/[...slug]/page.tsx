@@ -1,4 +1,60 @@
 import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
+import NotesClient from "./Notes.client";
+import { fetchNotes } from "@/lib/api";
+import { Metadata } from "next";
+
+type Props = {
+  params: Promise<{ slug?: string[] }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const resolvedSlug = slug ?? [];
+  const filter = resolvedSlug.length > 0 ? resolvedSlug.join("/") : "all";
+  const title = filter === "all" ? "All Notes | NoteHub" : `Notes filtered by ${filter} | NoteHub`;
+  const description = filter === "all" ? "All notes in NoteHub" : `Notes filtered by ${filter} in NoteHub`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: "/images/notehub-og-meta.jpg", 
+          width: 1200,
+          height: 630,
+          alt: "NoteHub Logo",
+        },
+      ],
+      url: `https://project-notehub.vercel.app/notes/filter/${filter}`,
+      type: "website",
+      locale: "en_US",
+    },
+  };
+}
+
+export default async function Page({ params }: Props) {
+  const { slug } = await params;
+  const resolvedSlug = slug ?? [];
+  const tag = resolvedSlug.length > 0 && resolvedSlug[0] !== "All" ? resolvedSlug[0] : "all"; // Фикс: "all" для All или отсутствующего slug
+
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ["notes", { query: "", page: 1, tag }],
+    queryFn: () => fetchNotes(1, "", tag),
+  });
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <NotesClient tag={tag} />
+    </HydrationBoundary>
+  );
+}
+
+/*import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
 import NotesClient from "./Notes.client"; 
 import { fetchNotes } from "@/lib/api";
 import { Metadata } from "next";
@@ -49,5 +105,5 @@ export default async function Page({ params }: Props) {
  <NotesClient tag={tag} />
  </HydrationBoundary>
  );
-}
+}*/
 
