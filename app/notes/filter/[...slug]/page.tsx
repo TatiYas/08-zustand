@@ -4,6 +4,56 @@ import { fetchNotes } from "@/lib/api";
 import { Metadata } from "next";
 
 type Props = {
+  params: { slug?: string[] };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const slug = params.slug ?? [];
+  const tag = slug[0];
+
+  const isAll = !tag;
+
+  const title = isAll
+    ? "All Notes | NoteHub"
+    : `Notes filtered by ${tag} | NoteHub`;
+
+  const description = isAll
+    ? "All notes in NoteHub"
+    : `Notes filtered by ${tag} in NoteHub`;
+
+  return {
+    title,
+    description,
+  };
+}
+
+export default async function Page({ params }: Props) {
+  const slug = params.slug ?? [];
+  const tag = slug[0]; // ❗ undefined = all
+
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ["notes", { page: 1, tag: tag ?? null }],
+    queryFn: () => fetchNotes(1, "", tag),
+  });
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <NotesClient tag={tag} />
+    </HydrationBoundary>
+  );
+}
+
+
+
+
+/*import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
+import NotesClient from "./Notes.client";
+import { fetchNotes } from "@/lib/api";
+import { Metadata } from "next";
+
+type Props = {
   params: Promise<{ slug?: string[] }>;
 };
 
