@@ -1,23 +1,18 @@
-import css from "./notesPage.module.css";
-import NoteListClient from "./Notes.client";
-import { QueryClient, HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
+import NotesClient from "@/app/notes/filter/[...slug]/Notes.client"; 
 import { fetchNotes } from "@/lib/api";
 import { Metadata } from "next";
 
-
 type Props = {
- params: Promise<{ slug: string[] }>;
+ params: { slug?: string[] };
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
- const { slug } = await params;
- const rawTag = slug?.[0];
+ const slug = params.slug ?? [];
+ const filter = slug.length > 0 ? slug.join("/") : "all";
 
- // Если тег "All" или отсутствует — показываем "all" в мета-тегах
- const displayTag = rawTag === "All" || !rawTag ? "all" : rawTag;
-
- const title = `Notes filtered by: ${displayTag}`;
- const description = `Review of notes filtered by "${displayTag}".`;
+ const title = `Notes filter: ${filter} | NoteHub`;
+ const description = `Notes filtered by ${filter} in NoteHub`;
 
  return {
  title,
@@ -25,14 +20,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  openGraph: {
  title,
  description,
- url: `https://08-zustand-one-plum.vercel.app//notes/filter/${rawTag || "all"}`,
+ url: `https://08-zustand-one-plum.vercel.app//notes/filter/${filter}`,
  siteName: "NoteHub",
  images: [
  {
  url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
  width: 1200,
  height: 630,
- alt: "Title",
+ alt: "NoteHub",
  },
  ],
  locale: "en_US",
@@ -41,12 +36,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  };
 }
 
-export default async function App({ params }: Props) {
+export default async function Page({ params }: Props) {
  const queryClient = new QueryClient();
- const { slug } = await params;
+ const slug = params.slug ?? [];
 
- 
- const tag = slug?.[0] === "All" ? undefined : slug?.[0];
+ const tag = slug[0] === "All" ? undefined : slug[0];
 
 
  await queryClient.prefetchQuery({
@@ -55,10 +49,8 @@ export default async function App({ params }: Props) {
  });
 
  return (
- <div className={css.app}>
  <HydrationBoundary state={dehydrate(queryClient)}>
- <NoteListClient tag={tag} />
+ <NotesClient tag={tag} />
  </HydrationBoundary>
- </div>
  );
 }
