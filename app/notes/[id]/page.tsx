@@ -8,10 +8,11 @@ import { fetchNoteById } from '@/lib/api';
 import NoteDetailsClient from './NoteDetails.client';
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const note = await fetchNoteById(params.id);
 
   return {
@@ -33,7 +34,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function NoteDetailsPage({ params }: Props) {
+export default async function NoteDetailsPage(props: Props) {
+  const params = await props.params;
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({

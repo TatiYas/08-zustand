@@ -1,5 +1,68 @@
 import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
-import NotesClient from "./Notes.client"; // или правильный путь
+import NotesClient from "./Notes.client";
+import { fetchNotes } from "@/lib/api";
+import { Metadata } from "next";
+
+type Props = {
+  params: Promise<{ slug?: string[] }>; // Обратите внимание: params теперь Promise!
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  // Асинхронно распаковываем params
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug ?? [];
+  const tag = slug[0] === "all" ? undefined : slug[0];
+
+  const isAll = !tag;
+
+  const title = isAll ? "All notes" : `${tag} notes`;
+  const description = isAll
+    ? "All notes selected"
+    : `Filtered by tag "${tag}" notes`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: "https://domain.com",
+      images: [
+        {
+          url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+          width: 1200,
+          height: 630,
+          alt: isAll ? "Unfiltered notes" : "Filtered notes",
+        },
+      ],
+    },
+  };
+}
+
+export default async function NotesByTags({ params }: Props) {
+  // Асинхронно получаем params
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug ?? [];
+  const tag = slug[0] === "all" ? undefined : slug[0];
+
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ["notes", tag],
+    queryFn: () => fetchNotes(1, "", tag),
+  });
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <NotesClient tag={tag} />
+    </HydrationBoundary>
+  );
+}
+
+
+
+/*import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
+import NotesClient from "./Notes.client"; 
 import { fetchNotes } from "@/lib/api";
 import { Metadata } from "next";
 
@@ -24,7 +87,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  openGraph: {
  title,
  description,
- url: "https://your-domain.com", // замени на реальный, если нужно
+ url: "https://domain.com", 
  images: [
  {
  url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
