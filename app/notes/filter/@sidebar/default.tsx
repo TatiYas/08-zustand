@@ -6,7 +6,7 @@ const tags:string[] = ['Todo', "Work", "Personal", "Meeting", "Shopping"]
 export default function SideBarNotes() {
     return (<ul className={css.menuList}>
       <li className={css.menuItem} key={"All"}>
-        <Link href={"/notes/filter/All"} className={css.menuLink}>
+        <Link href={"/notes/filter/all"} className={css.menuLink}>
           All notes
         </Link>
       </li>

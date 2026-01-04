@@ -4,11 +4,11 @@ import { fetchNotes } from "@/lib/api";
 import { Metadata } from "next";
 
 type Props = {
-  params: Promise<{ slug?: string[] }>; // Обратите внимание: params теперь Promise!
+  params: Promise<{ slug?: string[] }>; 
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Асинхронно распаковываем params
+ 
   const resolvedParams = await params;
   const slug = resolvedParams.slug ?? [];
   const tag = slug[0] === "all" ? undefined : slug[0];
